@@ -7,16 +7,13 @@ public class MainVerticle extends AbstractVerticle {
 
   @Override
   public void start(Future<Void> startFuture) throws Exception {
-    vertx.createHttpServer().requestHandler(req -> {
-      req.response()
-        .putHeader("content-type", "text/plain")
-        .end("Hello from Vert.x!");
-    }).listen(8888, http -> {
-      if (http.succeeded()) {
+    Future<String> httpVerticleDeployment = Future.future();
+    vertx.deployVerticle(new HttpServerVerticle(), httpVerticleDeployment.completer());
+    httpVerticleDeployment.setHandler(ar -> {
+      if (ar.succeeded()){
         startFuture.complete();
-        System.out.println("HTTP server started on port 8888");
       } else {
-        startFuture.fail(http.cause());
+        startFuture.fail(ar.cause());
       }
     });
   }
